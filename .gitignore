@@ -1,0 +1,34 @@
+# Dependencies
+node_modules
+
+# Build output (Vercel builds from source)
+dist
+dev-dist
+*.tsbuildinfo
+
+# Local env files
+.env
+.env.*
+!.env.example
+*.local
+
+# Vercel CLI link/state
+.vercel
+
+# Local tooling (browser QA screenshots and reports)
+.gstack
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.swp
