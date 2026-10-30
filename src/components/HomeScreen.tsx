@@ -2,8 +2,11 @@ import { useCallback, useEffect, useState, type RefObject } from 'react'
 import { useBattery } from '../hooks/useBattery'
 import { useSettings } from '../hooks/useSettings'
 import { useTorch } from '../hooks/useTorch'
+import { useWeather } from '../hooks/useWeather'
 import { fullscreenSupported, isIOS, isStandalone } from '../lib/detect'
+import { OPEN_METEO_URL } from '../lib/legal'
 import { renderSnapshot, shareOrDownload, snapshotFile } from '../lib/snapshot'
+import { readJSON, writeJSON } from '../lib/storage'
 import Clock from './Clock'
 import Dock from './Dock'
 import Notes from './Notes'
@@ -57,6 +60,9 @@ function useFullscreen(onUnsupported: () => void) {
 }
 
 let toastId = 0
+
+const SAFETY_KEY = 'safetyNoticeSeen'
+const SAFETY_TOAST: ToastMessage = { id: -1, text: "Look up from Claire when you're on the move.", duration: 4000 }
 /** Staggered entrance delay for the nth block. */
 const rise = (step: number) => ({ animationDelay: `${90 + step * 90}ms` })
 
@@ -65,7 +71,9 @@ export default function HomeScreen({ track, videoRef }: HomeScreenProps) {
   const battery = useBattery()
   const torch = useTorch(track)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [toast, setToast] = useState<ToastMessage | null>(null)
+  const weather = useWeather()
+  // One-time safety reminder on the very first launch; shown once the camera is live.
+  const [toast, setToast] = useState<ToastMessage | null>(() => (readJSON(SAFETY_KEY, false) ? null : SAFETY_TOAST))
   const [snapshotBusy, setSnapshotBusy] = useState(false)
   const [flash, setFlash] = useState(0)
   const [pendingShare, setPendingShare] = useState<File | null>(null)
@@ -73,6 +81,8 @@ export default function HomeScreen({ track, videoRef }: HomeScreenProps) {
   const showToast = useCallback((text: string) => setToast({ id: ++toastId, text }), [])
   const clearToast = useCallback(() => setToast(null), [])
   const closeSettings = useCallback(() => setSettingsOpen(false), [])
+
+  useEffect(() => writeJSON(SAFETY_KEY, true), [])
 
   const fullscreen = useFullscreen(
     useCallback(
@@ -118,10 +128,21 @@ export default function HomeScreen({ track, videoRef }: HomeScreenProps) {
           <section className="flex w-full max-w-md flex-col items-center gap-4 landscape:max-w-sm landscape:flex-1 md:max-w-lg md:gap-5">
             {hasWidgets && (
               <div className="animate-rise flex w-full justify-center gap-3 md:gap-4" style={rise(1)}>
-                {widgets.weather && <WeatherWidget />}
+                {widgets.weather && <WeatherWidget state={weather.state} request={weather.request} />}
                 {showBattery && <BatteryWidget battery={battery} />}
                 {widgets.compass && <CompassWidget />}
               </div>
+            )}
+            {widgets.weather && weather.state.status === 'ready' && (
+              // Required attribution for Open-Meteo data (CC BY 4.0).
+              <a
+                href={OPEN_METEO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="animate-fade -my-2 inline-flex min-h-8 items-center px-2 text-[11px] text-white/60 underline-offset-4 hover:underline"
+              >
+                Weather by Open-Meteo.com
+              </a>
             )}
             {widgets.notes && (
               <div className="animate-rise w-full max-w-[25rem] md:max-w-[31rem]" style={rise(2)}>

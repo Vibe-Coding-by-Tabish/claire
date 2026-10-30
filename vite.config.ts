@@ -31,7 +31,8 @@ export default defineConfig({
       },
       workbox: {
         // App shell only: no runtime caching of weather or anything else.
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        // Self-hosted Inter (latin, 5 weights) is part of the shell so it works offline.
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest,woff2}'],
         navigateFallback: '/index.html',
         runtimeCaching: [],
       },

@@ -1,5 +1,7 @@
 import { useEffect, type CSSProperties, type ReactNode } from 'react'
 import { BLUR_MAX, BLUR_MIN, LENS_MAX, LENS_MIN, useSettings, type Settings } from '../hooks/useSettings'
+import { Link } from 'react-router-dom'
+import { OPEN_METEO_URL } from '../lib/legal'
 import { CloseIcon } from './Icons'
 
 interface SettingsSheetProps {
@@ -78,7 +80,9 @@ function Slider({
   )
 }
 
-const WIDGET_LABELS: [keyof Settings['widgets'], string][] = [
+const ABOUT_LINK = 'flex min-h-11 items-center underline-offset-4 hover:underline'
+
+const WIDGET_LABELS:[keyof Settings['widgets'], string][] = [
   ['weather', 'Weather'],
   ['battery', 'Battery'],
   ['compass', 'Compass'],
@@ -167,6 +171,19 @@ export default function SettingsSheet({ open, onClose, batterySupported }: Setti
         >
           Reset to defaults
         </button>
+
+        <h3 className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-white/50">About</h3>
+        <nav aria-label="About" className="mt-1 flex flex-col text-[15px]">
+          <Link to="/privacy" className={ABOUT_LINK}>
+            Privacy Policy
+          </Link>
+          <Link to="/terms" className={ABOUT_LINK}>
+            Terms of Use
+          </Link>
+          <a href={OPEN_METEO_URL} target="_blank" rel="noopener noreferrer" className={`${ABOUT_LINK} text-white/60`}>
+            Weather data by Open-Meteo.com
+          </a>
+        </nav>
       </section>
     </div>
   )

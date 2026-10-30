@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { isIOS, shareableUrl } from '../../lib/detect'
 import { CloseIcon, LinkIcon } from '../Icons'
+import LegalLinks from '../legal/LegalLinks'
 
 async function copy(text: string): Promise<boolean> {
   try {
@@ -35,6 +36,7 @@ export default function InAppBrowser({ app }: { app: string }) {
           <p className="text-xs text-white/65">
             {app}'s browser can limit the camera. Copy the link, then paste it in {browser}.
           </p>
+          <LegalLinks className="-mb-3 -ml-2 -mt-1 justify-start" />
         </div>
         <button
           type="button"

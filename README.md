@@ -51,13 +51,26 @@ Append `?simulate=<state>` to force a screen without needing the matching device
 
 ## Deploying to Vercel
 
-The app is a static Vite build. `vercel.json` adds an SPA rewrite to `/index.html` and a
-`Permissions-Policy: camera=(self), geolocation=(self)` header.
+The app is a static Vite build. `vercel.json` rewrites every path to `/index.html`, so deep
+links like `/privacy` and `/terms` survive a refresh. It also sets these headers on all routes:
+
+- `Permissions-Policy: camera=(self), geolocation=(self), microphone=(), payment=(), usb=()`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `X-Content-Type-Options: nosniff`
+- `Content-Security-Policy`: only the app's own origin, plus `https://api.open-meteo.com`
+  for `connect-src`. `blob:`/`data:` are allowed for images and media (snapshot preview,
+  camera stream).
+
+Deploy options:
 
 - **Dashboard:** import the repo. Vercel detects Vite (build `npm run build`, output `dist`).
 - **CLI:** `npx vercel` for a preview deploy, `npx vercel --prod` for production.
 
 Vercel serves over HTTPS, so the camera works on any device straight away.
+
+If you ever add a new external service (a CDN, analytics, an API), you must add its origin to
+the CSP in `vercel.json` or the browser will block it. Update the Privacy Policy at the same
+time (see below).
 
 ## How it works
 
@@ -101,6 +114,50 @@ Notes:
 - Pinch-zoom is disabled on purpose: `user-scalable=no` plus a `gesturestart` guard for iOS.
 - Animations respect `prefers-reduced-motion`.
 
+## Legal & privacy
+
+Claire ships with a Privacy Policy at `/privacy` and Terms of Use at `/terms`. They're linked
+from the splash screen, the Settings sheet ("About"), and every fallback screen. The camera is
+only ever requested on `/`; it never starts on the legal pages.
+
+### Fill in the placeholders before launch
+
+All editable values live in [`src/lib/legal.ts`](src/lib/legal.ts):
+
+| Constant         | Current value          | Replace with                                   |
+| ---------------- | ---------------------- | ---------------------------------------------- |
+| `CONTACT_EMAIL`  | `[CONTACT_EMAIL]`      | The address that receives privacy/terms emails |
+| `OWNER_NAME`     | `[OWNER_NAME]`         | Your name or your business's legal name        |
+| `EFFECTIVE_DATE` | `[EFFECTIVE_DATE]`     | The date the current policy takes effect       |
+| `COUNTRY`        | `India`                | Governing-law country (already set)            |
+
+Change `EFFECTIVE_DATE` each time you materially change either page.
+
+### Open-Meteo is free for non-commercial use only
+
+Weather comes from Open-Meteo's free API, which is licensed for **non-commercial use** with
+attribution (CC BY 4.0). The required "Weather by Open-Meteo.com" credit shows whenever weather
+is on screen, and in Settings → About. If Claire is ever monetized (ads, paid features,
+sponsorships), switch to a paid Open-Meteo plan first. There's a reminder comment in
+`src/hooks/useWeather.ts`.
+
+### Keep the policy true
+
+The Privacy Policy promises no cookies, analytics, ads, tracking, third-party fonts/CDNs,
+accounts, or backend. **If you add any of these, you must update the Privacy Policy (and the CSP
+in `vercel.json`) before shipping.** The same goes for new `localStorage` keys: the policy lists
+every key Claire stores (`claire.settings`, `claire.note`, `claire.weather`, `claire.compass`,
+`claire.safetyNoticeSeen`).
+
+Other privacy details:
+
+- Inter is self-hosted via `@fontsource/inter` (Latin subset, weights 200–600). No request goes
+  to Google Fonts.
+- Weather coordinates are rounded to about 1 km before being sent to Open-Meteo, and are never
+  stored.
+- A one-time safety reminder ("Look up from Claire when you're on the move.") appears on the
+  first launch only.
+
 ## Project layout
 
 ```
@@ -110,6 +167,9 @@ src/
               Icons, Toast, SnapshotPreview
   components/widgets/   WeatherWidget, BatteryWidget, CompassWidget
   components/fallbacks/ Denied, InAppBrowser, DesktopFallback, Unsupported, FallbackShell
-  lib/        detect.ts, snapshot.ts, storage.ts, time.ts
+  components/legal/     LegalPage, LegalLinks
+  pages/      Privacy, Terms
+  lib/        detect.ts, legal.ts, snapshot.ts, storage.ts, time.ts
+  Root.tsx    routes: / (app), /privacy, /terms
 scripts/generate-icons.mjs   dependency-free PNG icon generator (npm run icons)
 ```

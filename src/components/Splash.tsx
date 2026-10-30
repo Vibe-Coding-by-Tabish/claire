@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import LegalLinks from './legal/LegalLinks'
 
 /** Wordmark shown while the camera is being requested. Fades out once `visible` turns false. */
 export default function Splash({ visible }: { visible: boolean }) {
@@ -28,6 +29,7 @@ export default function Splash({ visible }: { visible: boolean }) {
         <p className="animate-rise mt-4 text-[15px] text-white/75 [animation-delay:150ms]">
           Your camera stays on your device.
         </p>
+        <LegalLinks className="animate-rise mt-1 [animation-delay:250ms]" />
         <p
           className={`mt-10 text-sm text-white/60 transition-opacity duration-500 ${
             showHint && visible ? 'opacity-100' : 'opacity-0'

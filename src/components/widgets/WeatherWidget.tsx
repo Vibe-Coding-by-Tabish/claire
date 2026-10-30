@@ -1,10 +1,9 @@
-import { describeWeather, useWeather } from '../../hooks/useWeather'
+import { describeWeather, type WeatherState } from '../../hooks/useWeather'
 import GlassCard from '../GlassCard'
 import { LocationIcon, WeatherIcon } from '../Icons'
 import { WIDGET_CLASS } from './widgetStyles'
 
-export default function WeatherWidget() {
-  const { state, request } = useWeather()
+export default function WeatherWidget({ state, request }: { state: WeatherState; request: () => void }) {
 
   if (state.status === 'ready') {
     const { temp, high, low, code, isDay } = state.data

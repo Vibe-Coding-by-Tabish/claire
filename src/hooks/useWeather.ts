@@ -19,9 +19,11 @@ export type WeatherState =
   | { status: 'denied' }
   | { status: 'error' }
 
+// Open-Meteo's free API is for non-commercial use only, with attribution (CC BY 4.0).
+// If Claire is ever monetized (ads, paid features, sponsorship), move to a paid
+// Open-Meteo plan (https://open-meteo.com/en/pricing) and update the legal pages.
 const CACHE_KEY = 'weather'
 const TTL = 30 * 60 * 1000
-
 
 function preferredUnit(): 'C' | 'F' {
   return /-(US|LR|MM)\b/i.test(navigator.language) ? 'F' : 'C'
@@ -39,8 +41,9 @@ function locate(): Promise<GeolocationPosition> {
 
 async function fetchWeather(lat: number, lon: number, unit: 'C' | 'F'): Promise<WeatherData> {
   const params = new URLSearchParams({
-    latitude: lat.toFixed(3),
-    longitude: lon.toFixed(3),
+    // Rounded to ~1 km: plenty for weather, and keeps the location approximate.
+    latitude: lat.toFixed(2),
+    longitude: lon.toFixed(2),
     current: 'temperature_2m,weather_code,is_day',
     daily: 'temperature_2m_max,temperature_2m_min',
     timezone: 'auto',
